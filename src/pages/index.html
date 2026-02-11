@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Limit Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a1a1a;
+      --paper: #f5f0e8;
+      --paper-warm: #ebe4d6;
+      --accent: #c45d3e;
+      --accent-glow: #e8764f;
+      --muted: #8a8275;
+      --faint: #d4cdbf;
+      --claude-orange: #d4764e;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 256px;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* ─── Layout ─── */
+    .welcome-container {
+      width: 100%;
+      max-width: 720px;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Masthead ─── */
+    .masthead {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .site-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-weight: 300;
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 0.35em;
+    }
+
+    .site-title em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── Divider ─── */
+    .rule {
+      width: 100%;
+      max-width: 480px;
+      height: 1px;
+      background: var(--faint);
+      margin: 0 auto 2.5rem;
+      position: relative;
+    }
+
+    .rule::after {
+      content: '◆';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--paper);
+      padding: 0 1rem;
+      color: var(--faint);
+      font-size: 0.6rem;
+    }
+
+    /* ─── Body Copy ─── */
+    .welcome-body {
+      text-align: center;
+      max-width: 580px;
+      margin-bottom: 2.5rem;
+    }
+
+    .welcome-body p {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.12rem;
+      line-height: 1.75;
+      color: var(--ink);
+      margin-bottom: 1.25em;
+      font-weight: 400;
+    }
+
+    .welcome-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .welcome-body .opener {
+      font-size: 1.3rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 1.75em;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ─── Claude Collab Badge ─── */
+    .collab-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--faint);
+      border-radius: 2rem;
+      background: rgba(255,255,255,0.5);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      animation: fadeUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+      opacity: 0;
+    }
+
+    .collab-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--claude-orange);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* ─── CTA ─── */
+    .cta-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      animation: fadeUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+      opacity: 0;
+    }
+
+    .enter-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      border: none;
+      padding: 1rem 2.8rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .enter-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateX(-101%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .enter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(26, 26, 26, 0.15);
+    }
+
+    .enter-btn:hover::before {
+      transform: translateX(0);
+    }
+
+    .enter-btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .enter-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+    /* ─── Footer Mark ─── */
+    .footer-mark {
+      position: fixed;
+      bottom: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--faint);
+      animation: fadeUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
+      opacity: 0;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 600px) {
+      .welcome-container { padding: 2rem 1.5rem; }
+      .welcome-body p { font-size: 1rem; }
+      .welcome-body .opener { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="welcome-container">
+
+    <div class="masthead">
+      <h1 class="site-title">The <em>Limit</em> Case</h1>
+      <p class="tagline">Where the trend lines converge</p>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="welcome-body">
+      <p class="opener">Welcome. You've found something a little different.</p>
+
+      <p>
+        This is a project about the forces reshaping our world — exponential technologies,
+        the changing role of human labor, and the economic assumptions we've built
+        everything on that may no longer hold. The kind of ideas usually locked behind
+        academic jargon or lost in political noise, brought here in plain language
+        for anyone willing to think about what comes next.
+      </p>
+
+      <p>
+        You'll also find games, experiments, and stories about how all of this
+        gets built — because this entire site is a collaboration between a human
+        (an engineer, not a software engineer) and <span class="highlight">Claude</span>,
+        Anthropic's AI assistant. Every page, every line of code, every design choice
+        emerged from that conversation. The process is part of the point.
+      </p>
+
+      <p>
+        This isn't a finished product. It's a living project — part essay collection,
+        part workshop, part invitation. Explore what's here, question what you find,
+        and if something sparks an idea, there may be a place for you in what this becomes.
+      </p>
+    </div>
+
+    <div class="collab-badge">
+      <span class="dot"></span>
+      Built with Claude · Human directed, AI crafted
+    </div>
+
+    <div class="cta-area">
+      <button class="enter-btn" onclick="window.location.href='/home'">
+        <span>What comes next? →</span>
+      </button>
+      <span class="enter-hint">Ideas · Games · Rabbit holes</span>
+    </div>
+
+  </div>
+
+  <div class="footer-mark">Est. 2025</div>
+</body>
+</html>
