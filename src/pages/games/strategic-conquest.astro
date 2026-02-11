@@ -1,0 +1,131 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION } from '../../consts';
+
+const pageTitle = 'Strategic Conquest';
+const pageDescription = `${SITE_DESCRIPTION} – Play Strategic Conquest.`;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			html,
+			body {
+				height: 100%;
+			}
+
+			body {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.page-shell {
+				display: flex;
+				flex-direction: column;
+				min-height: 100vh;
+			}
+
+			.game-layout {
+				display: flex;
+				flex-direction: column;
+				height: 100vh;
+				min-height: 0;
+			}
+
+			.game-toolbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0.5rem 1rem;
+				background: rgba(255, 255, 255, 0.9);
+				border-bottom: 1px solid rgba(var(--gray), 0.25);
+				backdrop-filter: blur(8px);
+				box-shadow: 0 1px 4px rgba(var(--black), 0.08);
+				z-index: 1;
+			}
+
+			.game-toolbar-left {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			.game-back-button {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.25rem;
+				padding: 0.35rem 0.75rem;
+				border-radius: 999px;
+				border: 1px solid rgb(var(--gray-light));
+				background: white;
+				color: rgb(var(--gray-dark));
+				font-size: 0.9rem;
+				text-decoration: none;
+				cursor: pointer;
+				box-shadow: 0 1px 3px rgba(var(--gray), 0.25);
+				transition:
+					background 0.15s ease,
+					box-shadow 0.15s ease,
+					transform 0.05s ease;
+			}
+
+			.game-back-button:hover {
+				background: rgb(var(--gray-light));
+				box-shadow: 0 3px 6px rgba(var(--gray), 0.3);
+				transform: translateY(-1px);
+			}
+
+			.game-back-button:active {
+				transform: translateY(0);
+				box-shadow: 0 1px 3px rgba(var(--gray), 0.2);
+			}
+
+			.game-title {
+				font-size: 0.95rem;
+				font-weight: 600;
+				color: rgb(var(--black));
+			}
+
+			.game-frame-wrapper {
+				flex: 1;
+				min-height: 0;
+			}
+
+			.game-frame {
+				width: 100%;
+				height: 100%;
+				border: none;
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page-shell">
+			<div class="game-layout" role="main">
+				<div class="game-toolbar">
+					<div class="game-toolbar-left">
+						<a href="/" class="game-back-button">
+							<span aria-hidden="true">←</span>
+							<span>Back</span>
+						</a>
+						<span class="game-title">Strategic Conquest</span>
+					</div>
+				</div>
+
+				<div class="game-frame-wrapper">
+					<iframe
+						class="game-frame"
+						src="https://strategic-conquest.vercel.app"
+						title="Strategic Conquest"
+						loading="lazy"
+						allowfullscreen
+					></iframe>
+				</div>
+
+			</div>
+		</div>
+	</body>
+</html>
