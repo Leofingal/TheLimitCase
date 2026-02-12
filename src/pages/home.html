@@ -28,7 +28,6 @@
 
     canvas { position: fixed; inset: 0; z-index: 0; }
 
-    /* ─── Title ─── */
     .title-overlay {
       position: fixed;
       top: 2rem;
@@ -51,10 +50,7 @@
       color: rgba(245, 240, 232, 0.92);
     }
 
-    .title-overlay h1 em {
-      font-style: italic;
-      color: var(--accent);
-    }
+    .title-overlay h1 em { font-style: italic; color: var(--accent); }
 
     .title-overlay .tagline {
       font-family: 'JetBrains Mono', monospace;
@@ -65,7 +61,6 @@
       margin-top: 0.3em;
     }
 
-    /* ─── Content Clouds ─── */
     .content-cloud {
       position: fixed;
       z-index: 10;
@@ -128,7 +123,6 @@
 
     .content-cloud:hover .cloud-icon { opacity: 1; }
 
-    /* ─── Expanded Panel ─── */
     .cloud-panel {
       position: absolute;
       width: 280px;
@@ -190,13 +184,8 @@
       margin-bottom: 0.75rem;
     }
 
-    /* Panel positions */
-    .cloud-pos-tl .cloud-panel { top: 110%; left: -20px; }
-    .cloud-pos-tr .cloud-panel { top: 110%; right: -20px; }
-    .cloud-pos-br .cloud-panel { bottom: 110%; right: -20px; }
-    .cloud-pos-bl .cloud-panel { bottom: 110%; left: -20px; }
+    /* Panel positioned dynamically via JS toward screen center */
 
-    /* ─── Collab badge ─── */
     .collab-float {
       position: fixed;
       top: 2rem;
@@ -229,7 +218,6 @@
       50% { opacity: 1; transform: scale(1.3); }
     }
 
-    /* ─── Center prompt ─── */
     .center-prompt {
       position: fixed;
       top: 50%;
@@ -246,7 +234,6 @@
       color: rgba(245, 240, 232, 0.18);
     }
 
-    /* ─── Credits ─── */
     .credits {
       position: fixed;
       bottom: 1.2rem;
@@ -302,7 +289,7 @@
     Built with Claude
   </div>
 
-  <div class="content-cloud cloud-pos-tl" id="cloud-essays" data-arm="0">
+  <div class="content-cloud" id="cloud-essays" data-arm="0">
     <div class="cloud-glow" style="background: radial-gradient(circle, rgba(160,100,220,0.7), transparent);"></div>
     <div class="cloud-core">
       <div class="cloud-icon">◉</div>
@@ -316,7 +303,7 @@
     </div>
   </div>
 
-  <div class="content-cloud cloud-pos-tr" id="cloud-games" data-arm="1">
+  <div class="content-cloud" id="cloud-games" data-arm="1">
     <div class="cloud-glow" style="background: radial-gradient(circle, rgba(80,180,170,0.7), transparent);"></div>
     <div class="cloud-core">
       <div class="cloud-icon">◈</div>
@@ -330,7 +317,7 @@
     </div>
   </div>
 
-  <div class="content-cloud cloud-pos-br" id="cloud-vibe" data-arm="2">
+  <div class="content-cloud" id="cloud-vibe" data-arm="2">
     <div class="cloud-glow" style="background: radial-gradient(circle, rgba(70,130,220,0.7), transparent);"></div>
     <div class="cloud-core">
       <div class="cloud-icon">◇</div>
@@ -344,7 +331,7 @@
     </div>
   </div>
 
-  <div class="content-cloud cloud-pos-bl" id="cloud-deeper" data-arm="3">
+  <div class="content-cloud" id="cloud-deeper" data-arm="3">
     <div class="cloud-glow" style="background: radial-gradient(circle, rgba(220,110,90,0.7), transparent);"></div>
     <div class="cloud-core">
       <div class="cloud-icon">◎</div>
@@ -360,7 +347,7 @@
     </div>
   </div>
 
-  <div class="content-cloud cloud-pos-bl" id="cloud-recent" data-arm="4">
+  <div class="content-cloud" id="cloud-recent" data-arm="4">
     <div class="cloud-glow" style="background: radial-gradient(circle, rgba(200,170,70,0.7), transparent);"></div>
     <div class="cloud-core">
       <div class="cloud-icon">✦</div>
@@ -392,247 +379,202 @@
   </div>
 
   <script>
+    // ─── Setup ───
     const canvas = document.getElementById('vortex-canvas');
     const ctx = canvas.getContext('2d');
     let W, H, cx, cy;
+
+    // Offscreen canvas for pre-rendered spiral arms
+    const armCanvas = document.createElement('canvas');
+    const armCtx = armCanvas.getContext('2d');
+
+    let stars = [];
+
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < 120; i++) {
+        stars.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: Math.random() * 1.2 + 0.2,
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.008 + 0.003,
+        });
+      }
+    }
 
     function resize() {
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
       cx = W / 2;
       cy = H / 2;
+      armCanvas.width = W;
+      armCanvas.height = H;
+      initStars();
     }
     window.addEventListener('resize', resize);
     resize();
 
-    // ─── Color palette for spiral arms ───
     const armColors = [
-      { r: 160, g: 100, b: 220 },  // purple
-      { r: 80, g: 180, b: 170 },   // teal
-      { r: 70, g: 130, b: 220 },   // blue
-      { r: 220, g: 110, b: 90 },   // warm coral
-      { r: 200, g: 170, b: 70 },   // gold
+      { r: 160, g: 100, b: 220 },
+      { r: 80, g: 180, b: 170 },
+      { r: 70, g: 130, b: 220 },
+      { r: 220, g: 110, b: 90 },
+      { r: 200, g: 170, b: 70 },
     ];
-
     const ARM_COUNT = 5;
     let time = 0;
 
-    // ─── Particles bound to spiral arms ───
-    class SpiralParticle {
-      constructor(armIndex) {
-        this.arm = armIndex;
-        this.reset();
-      }
+    // ─── Pre-render spiral arms (called ~once/sec, not every frame) ───
+    function renderArms() {
+      armCtx.clearRect(0, 0, W, H);
+      const maxRadius = Math.min(W, H) * 0.52;
 
-      reset() {
-        // t = position along the spiral, 0 = far out, 1 = center
-        this.t = Math.random();
-        this.speed = 0.0004 + Math.random() * 0.0008;
-        this.drift = (Math.random() - 0.5) * 30; // perpendicular scatter
-        this.size = Math.random() * 2 + 0.5;
-        this.brightness = Math.random() * 0.5 + 0.3;
-      }
+      for (let arm = 0; arm < ARM_COUNT; arm++) {
+        const col = armColors[arm];
+        const steps = 150;
 
-      update() {
-        this.t += this.speed * (1 + this.t * 2); // accelerate toward center
-        if (this.t > 0.95) this.reset();
-      }
+        for (let i = 0; i < steps; i++) {
+          const t = i / steps;
+          const radius = maxRadius * (1 - t);
+          const baseAngle = (arm / ARM_COUNT) * Math.PI * 2;
+          const angle = baseAngle + t * Math.PI * 3.5 + time * 0.15;
 
-      getPosition() {
-        const maxRadius = Math.min(W, H) * 0.52;
-        const radius = maxRadius * (1 - this.t);
-        const baseAngle = (this.arm / ARM_COUNT) * Math.PI * 2;
-        // Tighter spiral: more revolutions
-        const spiralAngle = baseAngle + this.t * Math.PI * 3.5 + time * 0.15;
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
 
-        // Perpendicular offset for width
-        const perpAngle = spiralAngle + Math.PI / 2;
-        const spreadFactor = (1 - this.t) * 0.8 + 0.2; // wider at edges
+          const width = (1 - t) * 45 + 10;
+          const edgeFade = Math.min(t * 4, 1);
+          const centerFade = 1 - Math.pow(t, 1.5);
+          const opacity = edgeFade * centerFade * 0.15;
 
-        const x = cx + Math.cos(spiralAngle) * radius + Math.cos(perpAngle) * this.drift * spreadFactor;
-        const y = cy + Math.sin(spiralAngle) * radius + Math.sin(perpAngle) * this.drift * spreadFactor;
-
-        return { x, y, radius };
+          armCtx.beginPath();
+          armCtx.arc(x, y, width, 0, Math.PI * 2);
+          armCtx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
+          armCtx.fill();
+        }
       }
     }
 
-    // Create particles across all arms
+    // ─── Particles ───
+    const PARTICLES_PER_ARM = 60;
     const particles = [];
-    const PARTICLES_PER_ARM = 120;
+
+    class SpiralParticle {
+      constructor(arm) {
+        this.arm = arm;
+        this.t = Math.random();
+        this.speed = 0.0004 + Math.random() * 0.0008;
+        this.drift = (Math.random() - 0.5) * 28;
+        this.size = Math.random() * 1.8 + 0.4;
+        this.brightness = Math.random() * 0.5 + 0.25;
+      }
+
+      update() {
+        this.t += this.speed * (1 + this.t * 2);
+        if (this.t > 0.95) {
+          this.t = Math.random() * 0.1;
+          this.drift = (Math.random() - 0.5) * 28;
+        }
+      }
+    }
+
     for (let arm = 0; arm < ARM_COUNT; arm++) {
       for (let i = 0; i < PARTICLES_PER_ARM; i++) {
         particles.push(new SpiralParticle(arm));
       }
     }
 
-    // ─── Draw luminous spiral arm bands ───
-    function drawSpiralArms() {
-      for (let arm = 0; arm < ARM_COUNT; arm++) {
-        const col = armColors[arm];
-        const maxRadius = Math.min(W, H) * 0.52;
-
-        // Draw the arm as a series of overlapping glowing segments
-        for (let t = 0; t < 1; t += 0.005) {
-          const radius = maxRadius * (1 - t);
-          const baseAngle = (arm / ARM_COUNT) * Math.PI * 2;
-          const spiralAngle = baseAngle + t * Math.PI * 3.5 + time * 0.15;
-
-          const x = cx + Math.cos(spiralAngle) * radius;
-          const y = cy + Math.sin(spiralAngle) * radius;
-
-          // Width narrows toward center, wider at edges
-          const width = (1 - t) * 50 + 8;
-
-          // Brightness peaks in middle range, fades at edges and center
-          const edgeFade = Math.min(t * 4, 1);
-          const centerFade = 1 - Math.pow(t, 1.5);
-          const opacity = edgeFade * centerFade * 0.12;
-
-          ctx.beginPath();
-          ctx.arc(x, y, width, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
-          ctx.fill();
-        }
-      }
+    // ─── Spiral position helper ───
+    function spiralPos(arm, t) {
+      const maxRadius = Math.min(W, H) * 0.52;
+      const radius = maxRadius * (1 - t);
+      const baseAngle = (arm / ARM_COUNT) * Math.PI * 2;
+      const angle = baseAngle + t * Math.PI * 3.5 + time * 0.15;
+      return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius };
     }
 
-    // ─── Central wormhole glow ───
-    function drawWormholeCenter() {
-      // Layered radial glows for depth
-      const layers = [
-        { radius: 180, r: 200, g: 160, b: 220, opacity: 0.06 },
-        { radius: 120, r: 232, g: 118, b: 79, opacity: 0.08 },
-        { radius: 80, r: 245, g: 200, b: 160, opacity: 0.1 },
-        { radius: 40, r: 255, g: 240, b: 220, opacity: 0.15 },
-      ];
-
-      for (const l of layers) {
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, l.radius);
-        grad.addColorStop(0, `rgba(${l.r}, ${l.g}, ${l.b}, ${l.opacity})`);
-        grad.addColorStop(0.6, `rgba(${l.r}, ${l.g}, ${l.b}, ${l.opacity * 0.3})`);
-        grad.addColorStop(1, 'transparent');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(cx, cy, l.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Bright core ring
+    // ─── Center glow ───
+    function drawCenter() {
       const pulse = 0.7 + Math.sin(time * 0.8) * 0.3;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-      const ringGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 30);
-      ringGrad.addColorStop(0, `rgba(255, 245, 230, ${0.2 * pulse})`);
-      ringGrad.addColorStop(0.5, `rgba(232, 118, 79, ${0.12 * pulse})`);
-      ringGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = ringGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 35, 0, Math.PI * 2);
-      ctx.fill();
 
-      // White-hot center point
+      const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 160);
+      g1.addColorStop(0, 'rgba(232, 160, 110, 0.09)');
+      g1.addColorStop(0.4, 'rgba(160, 100, 180, 0.04)');
+      g1.addColorStop(1, 'transparent');
+      ctx.fillStyle = g1;
+      ctx.fillRect(cx - 160, cy - 160, 320, 320);
+
+      const g2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 40);
+      g2.addColorStop(0, `rgba(255, 245, 230, ${0.18 * pulse})`);
+      g2.addColorStop(0.5, `rgba(232, 118, 79, ${0.08 * pulse})`);
+      g2.addColorStop(1, 'transparent');
+      ctx.fillStyle = g2;
+      ctx.fillRect(cx - 40, cy - 40, 80, 80);
+
       ctx.beginPath();
       ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 250, 240, ${0.4 * pulse})`;
+      ctx.fillStyle = `rgba(255, 250, 240, ${0.35 * pulse})`;
       ctx.fill();
     }
 
-    // ─── Star field background ───
-    const stars = [];
-    function initStars() {
-      stars.length = 0;
-      for (let i = 0; i < 150; i++) {
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          size: Math.random() * 1.2 + 0.2,
-          twinkle: Math.random() * Math.PI * 2,
-          speed: Math.random() * 0.01 + 0.005,
-        });
-      }
-    }
-    initStars();
-    window.addEventListener('resize', initStars);
+    // ─── Main loop ───
+    let frameCount = 0;
 
-    function drawStars() {
-      for (const s of stars) {
-        s.twinkle += s.speed;
-        const opacity = 0.15 + Math.sin(s.twinkle) * 0.1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220, 215, 200, ${opacity})`;
-        ctx.fill();
-      }
-    }
-
-    // ─── Main Loop ───
     function animate() {
       time += 0.01;
+      frameCount++;
 
-      // Clear
       ctx.fillStyle = '#0d0d18';
       ctx.fillRect(0, 0, W, H);
 
-      // Subtle vignette
-      const vignette = ctx.createRadialGradient(cx, cy, Math.min(W, H) * 0.15, cx, cy, Math.max(W, H) * 0.7);
-      vignette.addColorStop(0, 'transparent');
-      vignette.addColorStop(1, 'rgba(5, 5, 12, 0.4)');
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, W, H);
-
-      drawStars();
-
-      // Blur the spiral arms for soft glow
-      ctx.save();
-      ctx.filter = 'blur(6px)';
-      drawSpiralArms();
-      ctx.restore();
-
-      // Sharper overlay pass
-      ctx.save();
-      ctx.filter = 'blur(1px)';
-      drawSpiralArms();
-      ctx.restore();
-
-      // Particles
-      for (const p of particles) {
-        p.update();
-        const pos = p.getPosition();
-        const col = armColors[p.arm];
-
-        // Fade near center and edges
-        const distFromCenter = Math.sqrt((pos.x - cx) ** 2 + (pos.y - cy) ** 2);
-        const maxDist = Math.min(W, H) * 0.5;
-        const fade = Math.min(distFromCenter / 40, 1) * Math.min(1, (maxDist - distFromCenter) / (maxDist * 0.3));
-        const alpha = p.brightness * fade;
-
+      // Stars
+      for (const s of stars) {
+        s.phase += s.speed;
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, p.size * (0.5 + fade * 0.5), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${Math.min(col.r + 60, 255)}, ${Math.min(col.g + 60, 255)}, ${Math.min(col.b + 60, 255)}, ${alpha})`;
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220, 215, 200, ${0.15 + Math.sin(s.phase) * 0.1})`;
         ctx.fill();
       }
 
-      drawWormholeCenter();
+      // Re-render arms ~once per second (not every frame)
+      if (frameCount % 60 === 1) renderArms();
 
+      // Stamp pre-rendered arms — cheap drawImage instead of per-frame blur
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(armCanvas, 0, 0);
+      ctx.globalAlpha = 0.35;
+      ctx.drawImage(armCanvas, -2, -2);
+      ctx.drawImage(armCanvas, 2, 2);
+      ctx.globalAlpha = 1;
+
+      // Particles
+      const maxDist = Math.min(W, H) * 0.5;
+      for (const p of particles) {
+        p.update();
+        const pos = spiralPos(p.arm, p.t);
+        const perpAngle = Math.atan2(pos.y - cy, pos.x - cx) + Math.PI / 2;
+        const spread = (1 - p.t) * 0.8 + 0.2;
+        const px = pos.x + Math.cos(perpAngle) * p.drift * spread;
+        const py = pos.y + Math.sin(perpAngle) * p.drift * spread;
+
+        const dist = Math.hypot(px - cx, py - cy);
+        const fade = Math.min(dist / 40, 1) * Math.min(1, (maxDist - dist) / (maxDist * 0.3));
+
+        const c = armColors[p.arm];
+        ctx.beginPath();
+        ctx.arc(px, py, p.size * (0.5 + fade * 0.5), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.min(c.r + 60, 255)}, ${Math.min(c.g + 60, 255)}, ${Math.min(c.b + 60, 255)}, ${p.brightness * fade})`;
+        ctx.fill();
+      }
+
+      drawCenter();
       requestAnimationFrame(animate);
     }
 
     animate();
 
-    // ─── Position clouds ON the spiral arms ───
-    function getArmPosition(armIndex, t) {
-      const maxRadius = Math.min(W, H) * 0.52;
-      const radius = maxRadius * (1 - t);
-      const baseAngle = (armIndex / ARM_COUNT) * Math.PI * 2;
-      const spiralAngle = baseAngle + t * Math.PI * 3.5 + time * 0.15;
-      return {
-        x: cx + Math.cos(spiralAngle) * radius,
-        y: cy + Math.sin(spiralAngle) * radius,
-        angle: spiralAngle,
-      };
-    }
-
-    // Each cloud rides its arm at a fixed t position (how far along the spiral)
+    // ─── Cloud positioning ───
     const cloudConfigs = [
       { arm: 0, t: 0.22 },
       { arm: 1, t: 0.22 },
@@ -645,14 +587,35 @@
 
     function positionClouds() {
       cloudEls.forEach((el, i) => {
-        const cfg = cloudConfigs[i];
-        const pos = getArmPosition(cfg.arm, cfg.t);
-        el.style.left = (pos.x - 65) + 'px';
-        el.style.top = (pos.y - 65) + 'px';
+        const pos = spiralPos(cloudConfigs[i].arm, cloudConfigs[i].t);
+        const cloudX = pos.x - 65;
+        const cloudY = pos.y - 65;
+        el.style.left = cloudX + 'px';
+        el.style.top = cloudY + 'px';
+
+        // Position panel toward screen center
+        const panel = el.querySelector('.cloud-panel');
+        if (panel) {
+          // Reset
+          panel.style.top = panel.style.bottom = panel.style.left = panel.style.right = 'auto';
+
+          // Vertical: cloud above center → panel below, and vice versa
+          if (pos.y < cy) {
+            panel.style.top = '110%';
+          } else {
+            panel.style.bottom = '110%';
+          }
+
+          // Horizontal: cloud left of center → panel to the right, and vice versa
+          if (pos.x < cx) {
+            panel.style.left = '-20px';
+          } else {
+            panel.style.right = '-20px';
+          }
+        }
       });
       requestAnimationFrame(positionClouds);
     }
-
     positionClouds();
   </script>
 
