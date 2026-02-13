@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Limit Case</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -28,37 +29,56 @@
 
     canvas { position: fixed; inset: 0; z-index: 0; }
 
-    .title-overlay {
+    /* ─── Title Bar ─── */
+    .title-bar {
       position: fixed;
-      top: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      text-align: center;
-      pointer-events: none;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem 2rem;
+      background: rgba(13, 13, 24, 0.7);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(245, 240, 232, 0.08);
+      z-index: 100;
       animation: fadeIn 2s ease forwards;
       opacity: 0;
     }
 
     @keyframes fadeIn { to { opacity: 1; } }
 
-    .title-overlay h1 {
-      font-family: 'Newsreader', Georgia, serif;
-      font-weight: 300;
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
-      letter-spacing: -0.02em;
-      color: rgba(245, 240, 232, 0.92);
+    .title-bar__inner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
 
-    .title-overlay h1 em { font-style: italic; color: var(--accent); }
+    .title-bar__logo {
+      width: 36px;
+      height: 36px;
+    }
 
-    .title-overlay .tagline {
+    .title-bar__text {
+      font-family: 'Newsreader', Georgia, serif;
+      font-weight: 300;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: rgba(245, 240, 232, 0.92);
+      margin: 0;
+    }
+
+    .title-bar__text em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .title-bar__tagline {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.6rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: rgba(245, 240, 232, 0.35);
-      margin-top: 0.3em;
+      margin-left: auto;
     }
 
     .content-cloud {
@@ -187,8 +207,9 @@
     /* Panel positioned dynamically via JS toward screen center */
 
     .collab-float {
+      display: none; /* Moved to footer credits */
       position: fixed;
-      top: 2rem;
+      bottom: 2rem;
       right: 2rem;
       z-index: 20;
       display: flex;
@@ -279,9 +300,12 @@
 
   <canvas id="vortex-canvas"></canvas>
 
-  <div class="title-overlay">
-    <h1>The <em>Limit</em> Case</h1>
-    <p class="tagline">Where the trend lines converge</p>
+  <div class="title-bar">
+    <div class="title-bar__inner">
+      <img src="/logo-bilateral-dark.svg" alt="The Limit Case logo" class="title-bar__logo">
+      <h1 class="title-bar__text">The <em>Limit</em> Case</h1>
+      <span class="title-bar__tagline">Where the trend lines converge</span>
+    </div>
   </div>
 
   <div class="collab-float">
@@ -370,7 +394,7 @@
 
   <div class="credits">
     <div class="credits-row">
-      <span>Est. 2025</span>
+      <span>Built with Claude</span>
       <span class="credits-sep"></span>
       <span>Human directed · AI crafted</span>
       <span class="credits-sep"></span>
@@ -429,7 +453,7 @@
     // ─── Pre-render spiral arms (called ~once/sec, not every frame) ───
     function renderArms() {
       armCtx.clearRect(0, 0, armCanvas.width, armCanvas.height);
-      const maxRadius = Math.min(W, H) * 0.52;
+      const maxRadius = Math.min(W, H) * 0.42;
       const armCx = armCanvas.width / 2;
       const armCy = armCanvas.height / 2;
 
@@ -490,7 +514,7 @@
 
     // ─── Spiral position helper ───
     function spiralPos(arm, t) {
-      const maxRadius = Math.min(W, H) * 0.52;
+      const maxRadius = Math.min(W, H) * 0.42;
       const radius = maxRadius * (1 - t);
       const baseAngle = (arm / ARM_COUNT) * Math.PI * 2;
       const angle = baseAngle + t * Math.PI * 3.5 + time * 0.15;

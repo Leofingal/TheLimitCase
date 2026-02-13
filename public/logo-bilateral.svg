@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <!-- The Limit Case - Bilateral Logo Mark -->
+  <!-- Asymptote line -->
+  <line x1="80" y1="8" x2="80" y2="152" stroke="#d4cdbf" stroke-width="1" stroke-dasharray="3,5"/>
+  <!-- Left side - solid -->
+  <path d="M 8,128 C 25,126 42,120 55,108 C 65,98 72,82 76,60 C 78,45 79,28 80,12" fill="none" stroke="#c45d3e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 8,32 C 25,34 42,40 55,52 C 65,62 72,78 76,100 C 78,115 79,132 80,148" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Right side - faded mirror -->
+  <path d="M 152,128 C 135,126 118,120 105,108 C 95,98 88,82 84,60 C 82,45 81,28 80,12" fill="none" stroke="#c45d3e" stroke-width="2.5" stroke-linecap="round" opacity="0.25"/>
+  <path d="M 152,32 C 135,34 118,40 105,52 C 95,62 88,78 84,100 C 82,115 81,132 80,148" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" opacity="0.25"/>
+  <!-- Limit point -->
+  <circle cx="80" cy="80" r="3" fill="#c45d3e" opacity="0.5"/>
+</svg>
